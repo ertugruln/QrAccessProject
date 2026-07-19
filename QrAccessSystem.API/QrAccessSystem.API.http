@@ -1,0 +1,6 @@
+@QrAccessSystem.API_HostAddress = http://localhost:5197
+
+GET {{QrAccessSystem.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

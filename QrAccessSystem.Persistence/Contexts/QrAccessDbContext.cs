@@ -13,6 +13,7 @@ public class QrAccessDbContext : DbContext
     public DbSet<QrCode> QrCodes { get; set; }
     public DbSet<AccessLog> AccessLogs { get; set; }
     public DbSet<Visitor> Visitors { get; set; }
+    public DbSet<AppUser> AppUsers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -32,6 +33,7 @@ public class QrAccessDbContext : DbContext
         
         modelBuilder.Entity<QrCode>().HasQueryFilter(x => !x.IsDeleted);
         modelBuilder.Entity<AccessLog>().HasQueryFilter(x => !x.IsDeleted);
+        modelBuilder.Entity<AppUser>().HasQueryFilter(x => !x.IsDeleted);
     }
 
     // Otomatik Audit Log Doldurma

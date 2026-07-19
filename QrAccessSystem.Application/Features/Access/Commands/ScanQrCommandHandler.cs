@@ -10,33 +10,33 @@ public class ScanQrCommandHandler : IRequestHandler<ScanQrCommand, Response<stri
     private readonly IGenericRepository<QrCode> _qrCodeRepository;
     private readonly IGenericRepository<AccessLog> _accessLogRepository;
     private readonly IQrCodeService _qrCodeService;
+    private readonly IRealTimeService _realTimeService; // YENİ EKLENDİ
 
     public ScanQrCommandHandler(
         IGenericRepository<QrCode> qrCodeRepository, 
         IGenericRepository<AccessLog> accessLogRepository,
-        IQrCodeService qrCodeService)
+        IQrCodeService qrCodeService,
+        IRealTimeService realTimeService) // YENİ EKLENDİ
     {
         _qrCodeRepository = qrCodeRepository;
         _accessLogRepository = accessLogRepository;
         _qrCodeService = qrCodeService;
+        _realTimeService = realTimeService;
     }
 
     public async Task<Response<string>> Handle(ScanQrCommand request, CancellationToken cancellationToken)
     {
-        // 1. Kriptografik İmza Kontrolü (Sahte QR engelleme)
         if (!_qrCodeService.ValidateSignature(request.Payload))
         {
+            await _realTimeService.SendAccessNotificationAsync("Geçersiz veya manipüle edilmiş QR kod tespit edildi!", false);
             return Response<string>.Fail("Geçersiz veya manipüle edilmiş QR kod tespit edildi!");
         }
 
-        // 2. Veritabanından QR kodu bulma
         var qrCodes = await _qrCodeRepository.FindAsync(x => x.Payload == request.Payload);
         var qrCode = qrCodes.FirstOrDefault();
 
-        if (qrCode == null)
-            return Response<string>.Fail("Sistemde böyle bir QR kod kaydı bulunamadı.");
+        if (qrCode == null) return Response<string>.Fail("QR kod bulunamadı.");
 
-        // Log nesnemizi hazırlıyoruz
         var accessLog = new AccessLog
         {
             EmployeeId = qrCode.EmployeeId,
@@ -46,31 +46,33 @@ public class ScanQrCommandHandler : IRequestHandler<ScanQrCommand, Response<stri
             IsSuccess = false
         };
 
-        // 3. İptal Kontrolü
         if (qrCode.IsRevoked)
         {
             accessLog.FailureReason = "İptal edilmiş (Revoked) QR Kod.";
             await SaveLogAsync(accessLog);
-            return Response<string>.Fail("Bu QR kod güvenlik sebebiyle iptal edilmiştir.");
+            await _realTimeService.SendAccessNotificationAsync("Güvenlik İhlali: İptal edilmiş QR ile giriş denemesi!", false);
+            return Response<string>.Fail("Bu QR kod iptal edilmiştir.");
         }
 
-        // 4. Süre (Expiration) Kontrolü
         if (qrCode.ExpireDate < DateTime.UtcNow)
         {
             accessLog.FailureReason = "Süresi dolmuş QR Kod.";
             await SaveLogAsync(accessLog);
-            return Response<string>.Fail("QR kodun süresi (30 saniye) dolmuş. Lütfen yeni bir QR üretin.");
+            await _realTimeService.SendAccessNotificationAsync("Başarısız: QR kodun süresi dolmuş.", false);
+            return Response<string>.Fail("QR kodun süresi dolmuş.");
         }
 
-        // 5. Her şey başarılı! Log'u başarılı olarak güncelle.
         accessLog.IsSuccess = true;
         await SaveLogAsync(accessLog);
 
         string actionType = request.AccessType == Core.Enums.AccessType.Entry ? "Giriş" : "Çıkış";
+        
+        // CANLI BİLDİRİM FIRLATIYORUZ!
+        await _realTimeService.SendAccessNotificationAsync($"Geçiş Onaylandı: Personel {actionType} yaptı.", true);
+
         return Response<string>.Success("Geçiş Onaylandı", $"{actionType} işlemi başarıyla kaydedildi.");
     }
 
-    // DRY Prensibi: Log kaydetme kodunu tekrar etmemek için küçük bir yardımcı metot
     private async Task SaveLogAsync(AccessLog log)
     {
         await _accessLogRepository.AddAsync(log);

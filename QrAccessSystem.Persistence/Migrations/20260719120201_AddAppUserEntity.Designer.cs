@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using QrAccessSystem.Persistence.Contexts;
@@ -11,9 +12,11 @@ using QrAccessSystem.Persistence.Contexts;
 namespace QrAccessSystem.Persistence.Migrations
 {
     [DbContext(typeof(QrAccessDbContext))]
-    partial class QrAccessDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260719120201_AddAppUserEntity")]
+    partial class AddAppUserEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

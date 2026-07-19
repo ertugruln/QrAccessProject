@@ -1,24 +1,23 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using QrAccessSystem.Application.Features.Employees.Commands;
+using QrAccessSystem.Application.Features.Visitors.Commands;
 using Microsoft.AspNetCore.Authorization;
 
 namespace QrAccessSystem.API.Controllers;
 
-[Authorize]
 [Route("api/[controller]")]
 [ApiController]
-public class EmployeesController : ControllerBase
+public class VisitorsController : ControllerBase
 {
     private readonly IMediator _mediator;
 
-    public EmployeesController(IMediator mediator)
+    public VisitorsController(IMediator mediator)
     {
         _mediator = mediator;
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(CreateEmployeeCommand command)
+    public async Task<IActionResult> Create(CreateVisitorCommand command)
     {
         var result = await _mediator.Send(command);
         
@@ -27,4 +26,4 @@ public class EmployeesController : ControllerBase
             
         return BadRequest(result);
     }
-}
+}   

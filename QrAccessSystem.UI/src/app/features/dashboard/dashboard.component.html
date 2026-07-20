@@ -1,0 +1,55 @@
+<!-- Üst Menü (Navbar) -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="#">QR Geçiş Sistemi</a>
+    <div class="d-flex">
+      <button class="btn btn-light fw-bold text-primary" (click)="onLogout()">
+        Çıkış Yap
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- Ana İçerik -->
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-10">
+      <div class="card shadow p-4 border-0 rounded-3">
+        <h3 class="fw-bold text-dark">Sisteme Hoş Geldiniz! 🎉</h3>
+        <p class="text-muted fs-5">Güvenlik duvarını başarıyla geçtiniz ve token'ınız arka planda koruma altında.</p>
+        <hr>
+        
+        <div class="alert alert-info mt-3">
+          <strong>Sıradaki Adım:</strong> Burada Backend (API) üzerinden çektiğimiz yetki gerektiren gerçek verileri sergileyeceğiz.
+        </div>
+
+        <!-- Veri Tablosu -->
+        <div class="table-responsive mt-4">
+          <table class="table table-bordered table-hover">
+            <thead class="table-light">
+              <tr>
+                <th>#</th>
+                <th>ID</th>
+                <th>Kullanıcı Adı / Bilgi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- dataList içindeki verileri döngüye sokuyoruz -->
+              <tr *ngFor="let item of dataList; let i = index">
+                <td>{{ i + 1 }}</td>
+                <td>{{ item.id }}</td>
+                <td>{{ item.username }}</td> 
+              </tr>
+            </tbody>
+          </table>
+          
+          <!-- Eğer veri henüz gelmediyse veya boşsa -->
+          <div *ngIf="dataList.length === 0" class="text-center text-muted mt-3">
+            Henüz gösterilecek veri bulunamadı veya yükleniyor...
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
